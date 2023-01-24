@@ -18,6 +18,18 @@ $f3->route('GET /', function(){
     $view = new Template();
     echo $view->render('views/diner-home.html');
 });
+//Define a default route (328/diner/breakfast)
+$f3->route('GET /breakfast', function(){
+    //echo '<h1>My Diner</h1>';
+    $view = new Template();
+    echo $view->render('views/breakfast.html');
+});
+//Define a default route (328/diner/lunch)
+$f3->route('GET /lunch', function(){
+    //echo '<h1>My Diner</h1>';
+    $view = new Template();
+    echo $view->render('views/lunch.html');
+});
 
 //Run fat free
 $f3->run();
