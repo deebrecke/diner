@@ -10,6 +10,8 @@ session_start();
 
 //Require autoload file
 require_once("vendor/autoload.php");
+require_once ('model/data-layer.php');
+//var_dump(getMeals());
 
 //Instantiate F3 Base class
 $f3 = Base::instance();
@@ -21,31 +23,53 @@ $f3->route('GET /', function(){
     $view = new Template();
     echo $view->render('views/diner-home.html');
 });
-//Define a default route (328/diner/breakfast)
+
+//Define a breakfast route (328/diner/breakfast)
 $f3->route('GET /breakfast', function(){
-    //echo '<h1>My Diner</h1>';
     $view = new Template();
     echo $view->render('views/breakfast.html');
 });
-//Define a default route (328/diner/lunch)
+//Define a lunch route (328/diner/lunch)
 $f3->route('GET /lunch', function(){
-    //echo '<h1>My Diner</h1>';
     $view = new Template();
     echo $view->render('views/lunch.html');
 });
 
-//order1 route -> views/order-form1.html
-$f3->route('GET|POST /order1', function(){
-//FI THE FORM HAS BEEN SUBMITTED
-    if($_SERVER['REQUEST_METHOD'] == 'POST')
+$f3->route('GET /summary', function(){
+    $view = new Template();
+    echo $view->render('views/order-summary.html');
+});
+
+$f3->route('GET|POST /order1', function($f3) {
+
+    //if the form has been submitted--change to post
+    if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+
+        //move data from post array to session array
+        $_SESSION['food'] = $_POST['food'];
+        $_SESSION['meal'] = $_POST['meal'];
+
+    //redirect to summary page
+    $f3->reroute('order2');
+    }
+
+    //add meals to F3 hive
+    $f3->set('meals', getMeals());
+
+
     $view = new Template();
     echo $view->render('views/order-form1.html');
 });
 
-$f3->route('GET /summary', function(){
-    //echo '<h1>My Diner</h1>';
+$f3->route('GET|POST /order2', function($f3){
+    if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+        $_SESSION['conds']=implode(", ", $_POST['conds']);
+        $f3->reroute('summary');
+    }
+
+    $f3->set('conds', getCondiments());
     $view = new Template();
-    echo $view->render('views/order-summary.html');
+    echo $view->render('views/order-form2.html');
 });
 //Run fat free
 $f3->run();
