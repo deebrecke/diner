@@ -5,14 +5,26 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-//start a session
-session_start();
-
 //Require autoload file
 require_once("vendor/autoload.php");
-require_once ('model/data-layer.php');
-//var_dump(getMeals());
 
+//start a session
+session_start();
+//var_dump($_SESSION);
+require_once ('model/data-layer.php');
+require_once('model/validate.php');
+//require_once ('classes/order.php');
+/*
+$myOrder = new Order();
+$myOrder->setFood("sushi");
+echo $myOrder->getFood();
+$myOrder->setMeal("dinner");
+echo $myOrder->getMeal();
+$myOrder->setCondiments("ginger");
+echo $myOrder->getCondiments();
+var_dump($myOrder);
+//var_dump(getMeals());
+*/
 //Instantiate F3 Base class
 $f3 = Base::instance();
 
@@ -35,43 +47,93 @@ $f3->route('GET /lunch', function(){
     echo $view->render('views/lunch.html');
 });
 
-$f3->route('GET /summary', function(){
-    $view = new Template();
-    echo $view->render('views/order-summary.html');
-});
 
+
+//Define an order1 route (328/diner/order1)
 $f3->route('GET|POST /order1', function($f3) {
 
-    //if the form has been submitted--change to post
-    if ($_SERVER['REQUEST_METHOD'] == 'POST'){
+    //If the form has been submitted
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        //create order object
+        $newOrder = new Order();
 
-        //move data from post array to session array
-        $_SESSION['food'] = $_POST['food'];
-        $_SESSION['meal'] = $_POST['meal'];
+        //Move food from POST array to SESSION array
+        $food = trim($_POST['food']);
+        if (validFood($food)) {
+            //set the food in the object
+            $newOrder->setFood($food);
+        }
+        else {
+            $f3->set('errors["food"]',
+                'Food must have at least 2 chars');
+        }
 
-    //redirect to summary page
-    $f3->reroute('order2');
+        //Validate the meal
+        $meal = $_POST['meal'];
+        if (validMeal($meal)) {
+            $newOrder->setMeal($meal);
+        }
+        else {
+            $f3->set('errors["meal"]',
+                'Meal is invalid');
+        }
+
+
+
+        //Redirect to summary page
+        //if there are no errors
+        if (empty($f3->get('errors'))) {
+            //add order object to session
+            $_SESSION['newOrder'] = $newOrder;
+            $f3->reroute('order2');
+        }
     }
 
-    //add meals to F3 hive
+    //Add meals to F3 hive
     $f3->set('meals', getMeals());
 
-
+    //Instantiate a view
     $view = new Template();
     echo $view->render('views/order-form1.html');
+
 });
 
-$f3->route('GET|POST /order2', function($f3){
-    if ($_SERVER['REQUEST_METHOD'] == 'POST'){
-        $_SESSION['conds']=implode(", ", $_POST['conds']);
+//Define an order2 route (328/diner/order2)
+$f3->route('GET|POST /order2', function($f3) {
+
+    //If the form has been submitted
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+        //Move data from POST array to SESSION array
+        //$_SESSION['conds'] = implode(", ",$_POST['conds']);
+
+        $condString = implode(", ", $_POST['conds']);
+        $_SESSION['newOrder']->setCondiments($condString);
+
+        //Redirect to summary page
         $f3->reroute('summary');
     }
 
-    $f3->set('conds', getCondiments());
+    //Add condiments to the hive
+    $f3->set('condiments', getCondiments());
+
+    //Instantiate a view
     $view = new Template();
-    echo $view->render('views/order-form2.html');
+    echo $view->render("views/order-form2.html");
+
 });
+
+$f3->route('GET /summary', function(){
+    //write to database
+
+    //instantiate a view
+    $view = new Template();
+    echo $view->render('views/order-summary.html');
+
+    session_destroy();
+});
+
+
 //Run fat free
 $f3->run();
 
-?>

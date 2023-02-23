@@ -7,7 +7,7 @@
 
     function getCondiments()
     {
-        return array("none","ketchup", "mustard", "ranch", "syrup");
+        return array("none","ketchup", "mustard", "ranch", "syrup", "wasabi", "ginger");
     }
 
 
