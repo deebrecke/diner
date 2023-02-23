@@ -1,16 +1,18 @@
 <?php
+
+class DataLayer
+{
     //functions and classes have lined up curly braces
-    function getMeals()
+    static function getMeals()
     {
         return array("breakfast", "lunch", "dinner", "dessert");
     }
 
-    function getCondiments()
+    static function getCondiments()
     {
         return array("none","ketchup", "mustard", "ranch", "syrup", "wasabi", "ginger");
     }
-
-
+}
 
 
 //close php tag not required for pages that are all php and no html
